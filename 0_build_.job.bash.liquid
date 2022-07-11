@@ -1,0 +1,44 @@
+#!/bin/bash -l
+#SBATCH -N 1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=00:30:00
+#SBATCH -A {{ grant_id }}
+#SBATCH -p plgrid-testing
+#SBATCH --output ./slurm-%j.out
+#SBATCH --error ./slurm-%j.err
+
+# Finish with error on first command with error
+set -e
+
+cd $SCRATCH
+pwd
+
+if [[ -d "virtualfd" ]]
+then
+    echo "virtualfd directory exists on your scratch."
+else
+    ## Clone repository and switch into selected revision
+    echo Preparing computation source code
+    {% clone_repo SanoISW/virtualfd.git %}
+fi
+
+cd virtualfd
+cd hemoflowcfd
+
+## Load modules
+echo Loading modules
+module load plgrid/tools/gcc
+module load plgrid/tools/cmake
+module load plgrid/libs/hdf5
+
+## Building with cmake
+echo Building
+mkdir build
+cd build
+cmake ..
+make -j 8
+
+echo Executable generated in:
+pwd
+
+echo Finish
