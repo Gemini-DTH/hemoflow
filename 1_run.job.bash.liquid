@@ -19,8 +19,10 @@ echo Preparing computation source code
 
 ## Load modules
 echo Loading modules
-module load plgrid/tools/impi
+
 module load plgrid/libs/hdf5
+module unload plgrid/tools/impi
+module load plgrid/tools/openmpi/4.0.3-gcc-9.3.0
 
 ## Running simulation
 cd $SCRATCH/virtualfd/hemoflowcfd/build
