@@ -16,6 +16,7 @@ pwd
 if [[ -d "virtualfd" ]]
 then
     echo "virtualfd directory exists on your scratch."
+    exit
 else
     ## Clone repository and switch into selected revision
     echo Preparing computation source code
@@ -27,9 +28,9 @@ cd hemoflowcfd
 
 ## Load modules
 echo Loading modules
+module load plgrid/libs/hdf5/1.8.16
 module load plgrid/tools/gcc
 module load plgrid/tools/cmake
-module load plgrid/libs/hdf5
 
 ## Building with cmake
 echo Building
