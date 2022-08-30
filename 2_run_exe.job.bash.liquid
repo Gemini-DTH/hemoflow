@@ -1,0 +1,31 @@
+#!/bin/bash -l
+#SBATCH -N 2
+#SBATCH --ntasks-per-node=4
+#SBATCH --mem-per-cpu=8GB
+#SBATCH --time=03:00:00
+#SBATCH -A {{ grant_id }}
+#SBATCH -p plgrid
+#SBATCH --output ./slurm-%j.out
+#SBATCH --error ./slurm-%j.err
+
+# Finish with error on first command with error
+set -e
+
+cd $TMPDIR
+pwd
+
+## Clone repository and switch into selected revision
+echo Preparing computation source code
+{% clone_repo SanoISW/virtualfd.git %}
+
+## Load modules
+echo Loading modules
+
+module load plgrid/libs/hdf5/1.10.7-openmpi-4.1.0-gcc-9.3.0-threadsafe
+
+## Running simulation
+echo Running simulation
+cd {% value_of exe_dir %}
+mpirun -n 4 ./hemoFlow {% value_of datafile %}
+
+echo Finish
