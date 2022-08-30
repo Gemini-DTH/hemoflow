@@ -25,7 +25,6 @@ module load plgrid/libs/hdf5/1.10.7-openmpi-4.1.0-gcc-9.3.0-threadsafe
 
 ## Running simulation
 echo Running simulation
-cd {% value_of exe_dir %}
-mpirun -n 4 ./hemoFlow {% value_of datafile %}
+mpirun -n 4 {% value_of exe_path %} {% value_of datafile %}
 
 echo Finish
