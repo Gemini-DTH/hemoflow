@@ -10,18 +10,12 @@
 # Finish with error on first command with error
 set -e
 
-cd $SCRATCH
+cd $TMPDIR
 pwd
 
-if [[ -d "virtualfd" ]]
-then
-    echo "virtualfd directory exists on your scratch."
-    exit
-else
-    ## Clone repository and switch into selected revision
-    echo Preparing computation source code
-    {% clone_repo SanoISW/virtualfd.git %}
-fi
+## Clone repository and switch into selected revision
+echo Preparing computation source code
+{% clone_repo SanoISW/virtualfd.git %}
 
 cd virtualfd
 cd hemoflowcfd
@@ -40,5 +34,7 @@ make -j 8
 
 echo Executable generated in:
 pwd
+
+{% stage_out hemoFlow %}
 
 echo Finish

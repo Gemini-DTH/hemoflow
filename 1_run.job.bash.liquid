@@ -13,6 +13,9 @@ set -e
 cd $TMPDIR
 pwd
 
+## Staging in executable
+{% stage_in hemoFlow_exe %}
+
 ## Clone repository and switch into selected revision
 echo Preparing computation source code
 {% clone_repo SanoISW/virtualfd.git %}
@@ -23,6 +26,7 @@ echo Loading modules
 module load plgrid/libs/hdf5/1.10.7-openmpi-4.1.0-gcc-9.3.0-threadsafe
 
 ## Running simulation
+echo Running simulation
 cd $SCRATCH/virtualfd/hemoflowcfd/build
 mpirun -n 4 ./hemoFlow {% value_of datafile %}
 
