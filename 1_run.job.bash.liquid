@@ -1,9 +1,10 @@
 #!/bin/bash -l
 #SBATCH -N 2
-#SBATCH --ntasks-per-node=2
-#SBATCH --time=00:30:00
+#SBATCH --ntasks-per-node=8
+#SBATCH --mem-per-cpu=16GB
+#SBATCH --time=03:00:00
 #SBATCH -A {{ grant_id }}
-#SBATCH -p plgrid-testing
+#SBATCH -p plgrid
 #SBATCH --output ./slurm-%j.out
 #SBATCH --error ./slurm-%j.err
 
