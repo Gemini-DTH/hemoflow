@@ -1,0 +1,19 @@
+#!/bin/bash -l
+#SBATCH -N 1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=00:04:00
+#SBATCH -A plgsano3
+#SBATCH -p plgrid-testing
+#SBATCH --output ./slurm-%j.out
+#SBATCH --error ./slurm-%j.err
+
+set -e
+
+# Go to scratch
+cd $SCRATCH
+pwd
+
+# Sleep
+sleep 120
+
+echo Finish
