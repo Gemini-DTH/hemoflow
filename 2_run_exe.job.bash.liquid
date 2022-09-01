@@ -27,4 +27,19 @@ module load plgrid/libs/hdf5/1.10.7-openmpi-4.1.0-gcc-9.3.0-threadsafe
 echo Running simulation
 mpirun -n 4 {% value_of exe_path %} {% value_of datafile %}
 
+DIR = "$(dirname {% value_of datafile %})"
+echo staging output from:
+echo "${DIR}/output"
+cd DIR
+cd output
+
+for result_file in *.vti
+do
+    if [ -f "$result_file" ]
+    then
+        {% stage_out "$result_file" %}
+    else
+        continue
+    fi
+done
 echo Finish
