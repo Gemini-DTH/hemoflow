@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -N 2
-#SBATCH --ntasks-per-node=8
+#SBATCH --ntasks-per-node=4
 #SBATCH --time=03:00:00
 #SBATCH -A {{ grant_id }}
 #SBATCH -p plgrid
@@ -13,12 +13,12 @@ set -e
 cd $TMPDIR
 pwd
 
-## Staging in executable
-{% stage_in hemoFlow_exe %}
-
 ## Clone repository and switch into selected revision
 echo Preparing computation source code
 {% clone_repo SanoISW/virtualfd.git %}
+
+## Staging in executable
+{% stage_in hemoFlow_exe %}
 
 ## Load modules
 echo Loading modules
