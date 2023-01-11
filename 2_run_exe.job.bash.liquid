@@ -20,12 +20,14 @@ echo Preparing computation source code
 
 ## Load modules
 echo Loading modules
-
-module load plgrid/libs/hdf5/1.10.7-openmpi-4.1.0-gcc-9.3.0-threadsafe
+module load hdf5/1.10.8-gompi-2021b
+ln -s  $EBROOTOPENMPI/lib64/libmpi.so.40 libmpi.so.20
+ln -s $EBROOTHDF5/lib/libhdf5.so.103 libhdf5.so.9
+export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
 
 ## Running simulation
 echo Running simulation
-mpirun -n 4 {% value_of exe_path %} {% value_of datafile %}
+mpirun -n 4 /net/pr2/projects/plgrid/plggisw/VirtualFD/hemoFlow_rhel6c6 {% value_of datafile %}
 
 DIR="$(dirname {% value_of datafile %})"
 echo staging output from:
