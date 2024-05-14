@@ -1,7 +1,9 @@
 #!/bin/bash
-#SBATCH --ntasks=10
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=10
+#SBATCH --time=00:30:00
 
-#SBATCH -p plgrid
+#SBATCH -p plgrid-testing
 
 #SBATCH -A {{ grant_id }}
 
