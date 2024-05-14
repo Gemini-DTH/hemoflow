@@ -12,5 +12,5 @@ module load cmake
 
 mkdir build
 cd build
-cmake
+cmake ..
 make -j 10
