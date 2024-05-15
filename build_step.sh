@@ -11,6 +11,6 @@ module load hdf5
 module load cmake
 
 mkdir build
-cd build
+cd ./build
 cmake ..
 make -j 10
