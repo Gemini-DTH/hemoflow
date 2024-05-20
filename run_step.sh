@@ -15,9 +15,9 @@ module load cmake
 
 cd $SCRATCH/hemoflow
 
-{% stage_in_by_filename NAP_122_L01_F03_PA64_5_CFD.xml %} # config file
-{% stage_in_by_filename cerebral_flowrate.txt %}
-{% stage_in_by_filename vox_NAP_122_L01_F03_PA64_5c.npz %}
+{% stage_in_artifact NAP_122_L01_F03_PA64_5_CFD.xml %} # config file
+{% stage_in_artifact cerebral_flowrate.txt %}
+{% stage_in_artifact vox_NAP_122_L01_F03_PA64_5c.npz %}
 
 ls -la
 
