@@ -19,6 +19,8 @@ cd $SCRATCH/hemoflow
 {% stage_in_by_filename cerebral_flowrate.txt %}
 {% stage_in_by_filename vox_NAP_122_L01_F03_PA64_5c.npz %}
 
+ls -la
+
 cd build
 
 mpirun -n 30 ./hemoFlow ../NAP_122_L01_F03_PA64_5_CFD.xml
