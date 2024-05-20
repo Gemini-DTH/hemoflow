@@ -8,7 +8,11 @@
 
 #SBATCH -A {{ grant_id }}
 
+set -e
+
 module load hdf5
+
+cd $SCRATCH/hemoflow
 
 {% stage_in config %}
 {% stage_in flowrate %}
