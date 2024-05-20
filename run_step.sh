@@ -19,6 +19,10 @@ cd $SCRATCH/hemoflow
 {% stage_in_artifact cerebral_flowrate.txt %}
 {% stage_in_artifact vox_NAP_122_L01_F03_PA64_5c.npz %}
 
+mv $scratchdir/NAP_122_L01_F03_PA64_5_CFD.xml .
+mv $scratchdir/cerebral_flowrate.txt .
+mv $scratchdir/vox_NAP_122_L01_F03_PA64_5c.npz .
+
 ls -la
 
 cd build
