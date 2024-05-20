@@ -7,8 +7,22 @@
 
 #SBATCH -A {{ grant_id }}
 
+cd $SCRATCH
+pwd
+
 module load hdf5
 module load cmake
+
+if [[ -d "hemoflow" ]]
+then
+    echo "hemoflow directory exists on your scratch."
+else
+    ## Clone repository and switch into selected revision
+    echo Preparing computation source code
+    {% clone_repo %}
+fi
+
+cd hemoflow
 
 mkdir build
 cd ./build
