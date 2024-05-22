@@ -21,4 +21,4 @@ cd $SCRATCHDIR
 
 ls -la
 
-mpirun $SCRATCH/hemoflow/build/hemoFlow -n 30 ./NAP_122_L01_F03_PA64_5_CFD.xml
+mpirun -n 30 $SCRATCH/hemoflow/build/hemoFlow ./NAP_122_L01_F03_PA64_5_CFD.xml
