@@ -1,0 +1,18 @@
+<simulation>
+	<Re>575</Re>
+	<blockSize>50</blockSize>
+	<outputDir>output_NAP_122_L01_F03_PA64_5_CFD</outputDir>
+	<simLength>3.2</simLength>
+	<saveFrequency>0.4</saveFrequency>
+	<checkpointFrequency>1.6</checkpointFrequency>
+</simulation>
+
+<geometry>
+	<inletFlowrateFunc>./cerebral_flowrate.txt</inletFlowrateFunc>
+	<file>vox_NAP_122_L01_F03_PA64_5c.npz</file>
+</geometry>
+
+<flowdiverter>
+	<linCoeff>163.41</linCoeff>
+	<quadCoeff>291.42</quadCoeff>
+</flowdiverter>
