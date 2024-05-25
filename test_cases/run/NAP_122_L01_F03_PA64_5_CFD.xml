@@ -2,8 +2,8 @@
 	<Re>575</Re>
 	<blockSize>50</blockSize>
 	<outputDir>output_NAP_122_L01_F03_PA64_5_CFD</outputDir>
-	<simLength>3.2</simLength>
-	<saveFrequency>0.4</saveFrequency>
+	<simLength>0.2</simLength>
+	<saveFrequency>0.1</saveFrequency>
 	<checkpointFrequency>1.6</checkpointFrequency>
 </simulation>
 
