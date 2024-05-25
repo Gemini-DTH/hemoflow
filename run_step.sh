@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=30
-#SBATCH --time=00:10:00
+#SBATCH --time=00:40:00
 
 #SBATCH -p plgrid
 
