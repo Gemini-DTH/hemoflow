@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=30
-#SBATCH --time=02:00:00
+#SBATCH --time=00:10:00
 
 #SBATCH -p plgrid
 
@@ -14,7 +14,7 @@ module load cmake
 
 cd $SCRATCHDIR
 
-cp $SCRATCH/hemoflow/test_cases/run/. .
+cp -r $SCRATCH/hemoflow/test_cases/run/. .
 
 mpirun -n 30 $SCRATCH/hemoflow/build/hemoFlow ./NAP_122_L01_F03_PA64_5_CFD.xml
 
