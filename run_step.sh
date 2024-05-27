@@ -12,37 +12,20 @@ set -e
 module load hdf5
 module load cmake
 
-cd $SCRATCH
-pwd
+cd $SCRATCHDIR
 
-if [[ -d "hemoflow" ]]
-then
-    echo "hemoflow directory exists on your scratch."
-    cd hemoflow
-    git pull
-else
-    ## Clone repository and switch into selected revision
-    echo Preparing computation source code
-    {% clone_repo %}
-    cd hemoflow
-fi
+{% clone_repo %}
+cd hemoflow
 
-if [[ -d "build" ]]
-then
-    echo "Build dir already exists."
-else
-    mkdir build
-fi
+mkdir build
 cd ./build
 
 cmake ..
 make -j 10
 
-cd $SCRATCHDIR
+cd $SCRATCHDIR/hemoflow/test_cases/run
 
-cp -r $SCRATCH/hemoflow/test_cases/run/. .
-
-mpirun -n 30 $SCRATCH/hemoflow/build/hemoFlow ./NAP_122_L01_F03_PA64_5_CFD.xml
+mpirun -n 30 $SCRATCHDIR/hemoflow/build/hemoFlow ./NAP_122_L01_F03_PA64_5_CFD.xml
 
 cd output_*
 
