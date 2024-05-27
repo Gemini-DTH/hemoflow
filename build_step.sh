@@ -16,15 +16,23 @@ module load cmake
 if [[ -d "hemoflow" ]]
 then
     echo "hemoflow directory exists on your scratch."
+    cd hemoflow
+    git pull
 else
     ## Clone repository and switch into selected revision
     echo Preparing computation source code
     {% clone_repo %}
+    cd hemoflow
 fi
 
-cd hemoflow
+if [[ -d "build" ]]
+then
+    echo "Build dir already exists."
+else
+    mkdir build
 
-mkdir build
+fi
 cd ./build
+
 cmake ..
 make -j 10
