@@ -22,4 +22,5 @@ cd output_*
 
 ls -la
 
-{% stage_out hemoflow_output %}
+{% stage_out *.data %}
+{% stage_out *.vti %}
