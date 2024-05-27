@@ -29,7 +29,7 @@ mpirun -n 30 $SCRATCHDIR/hemoflow/build/hemoFlow ./NAP_122_L01_F03_PA64_5_CFD.xm
 
 cd output_*
 
-ls -la
+ls -lah
 
 {% stage_out *.dat %}
 {% stage_out *.vti %}
