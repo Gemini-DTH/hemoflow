@@ -22,5 +22,5 @@ cd output_*
 
 ls -la
 
-{% stage_out *.data %}
+{% stage_out *.dat %}
 {% stage_out *.vti %}
