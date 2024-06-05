@@ -23,7 +23,7 @@ module load hdf5
 
 ## Running simulation
 echo Running simulation
-mpirun -n {% value_of mpi_size %} hemoFlow {% value_of datafile %}
+mpirun -n {% value_of mpi_size %} $SCRATCHDIR/hemoFlow {% value_of datafile %}
 
 DIR="$(dirname {% value_of datafile %})"
 echo staging output from:
