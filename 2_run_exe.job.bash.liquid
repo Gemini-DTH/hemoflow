@@ -31,7 +31,7 @@ DIR="$(dirname {% value_of datafile %})"
 echo staging output from:
 echo "${DIR}/output"
 cd $DIR
-cd output_*
+cd output
 
 ## Save results
 {% stage_out *.dat %}
