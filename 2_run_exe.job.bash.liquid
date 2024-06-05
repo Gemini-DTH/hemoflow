@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -N 1
-#SBATCH --ntasks={% value_of mpi_size%}
+#SBATCH --ntasks={% value_of mpi_size %}
 #SBATCH --cpus-per-task=1
 #SBATCH --time=01:00:00
 #SBATCH -A {{ grant_id }}
@@ -18,8 +18,9 @@ pwd
 echo Loading modules
 module load hdf5
 
-## Get the executable input from MEE
+## Get the executable input from MEE and add execute privileges
 {% stage_in_artifact hemoFlow %}
+chmod +x $SCRATCHDIR/hemoFlow
 
 ## Running simulation
 echo Running simulation
