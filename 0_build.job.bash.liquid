@@ -1,7 +1,9 @@
 #!/bin/bash -l
 #SBATCH -N 1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
 #SBATCH --time=00:30:00
+#SBATCH --mem=8G
 #SBATCH -A {{ grant_id }}
 #SBATCH -p plgrid-testing
 #SBATCH --output ./slurm-%j.out
@@ -18,12 +20,12 @@ echo Preparing computation source code
 {% clone_repo SanoISW/virtualfd.git %}
 
 cd virtualfd
-cd hemoflowcfd
+cd hemoflow
 
 ## Load modules
 echo Loading modules
-module load plgrid/tools/cmake
-module load plgrid/libs/hdf5/1.10.7-openmpi-4.1.0-gcc-9.3.0-threadsafe
+module load hdf5
+module load cmake
 
 ## Building with cmake
 echo Building
