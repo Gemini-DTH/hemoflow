@@ -1,8 +1,8 @@
 #!/bin/bash -l
 #SBATCH -N 1
-#SBATCH --ntasks=4
+#SBATCH --ntasks={% value_of mpi_size%}
 #SBATCH --cpus-per-task=1
-#SBATCH --time=02:00:00
+#SBATCH --time=01:00:00
 #SBATCH -A {{ grant_id }}
 #SBATCH -p plgrid
 #SBATCH --output ./slurm-%j.out
@@ -14,34 +14,24 @@ set -e
 cd $TMPDIR
 pwd
 
-## Clone repository and switch into selected revision
-echo Preparing computation source code
-{% clone_repo SanoISW/virtualfd.git %}
-
 ## Load modules
 echo Loading modules
-module load hdf5/1.10.8-gompi-2021b
-ln -s  $EBROOTOPENMPI/lib64/libmpi.so.40 libmpi.so.20
-ln -s $EBROOTHDF5/lib/libhdf5.so.103 libhdf5.so.9
-export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
+module load hdf5
+
+## Get the executable input from MEE
+{% stage_in_artifact hemoFlow %}
 
 ## Running simulation
 echo Running simulation
-mpirun -n 4 /net/pr2/projects/plgrid/plggisw/VirtualFD/hemoFlow_rhel6c6 {% value_of datafile %}
+mpirun -n {% value_of mpi_size %} hemoFlow {% value_of datafile %}
 
 DIR="$(dirname {% value_of datafile %})"
 echo staging output from:
 echo "${DIR}/output"
 cd $DIR
-cd output
+cd output_*
 
-for result_file in *.vti
-do
-    if [ -f "$result_file" ]
-    then
-        {% stage_out "$result_file" %}
-    else
-        continue
-    fi
-done
+## Save results
+{% stage_out *.dat %}
+{% stage_out *.vti %}
 echo Finish
