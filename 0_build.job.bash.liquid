@@ -12,15 +12,8 @@
 # Finish with error on first command with error
 set -e
 
-cd $TMPDIR
-pwd
-
-## Clone repository and switch into selected revision
-echo Preparing computation source code
-{% clone_repo SanoISW/virtualfd.git %}
-
-cd virtualfd
-cd hemoflow
+## Use the hemoflow library to build executable for VirtualFD
+cd /net/pr2/projects/plgrid/plggisw/VirtualFD/hemoflow
 
 ## Load modules
 echo Loading modules
@@ -37,6 +30,7 @@ make -j 8
 echo Executable generated in:
 pwd
 
+## Stage out hemoflow exec
 {% stage_out hemoFlow %}
 
 echo Finish
