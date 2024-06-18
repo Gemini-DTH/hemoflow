@@ -32,7 +32,7 @@ datafile={% value_of datafile %}
 DIR="$(dirname "${datafile}")"
 
 ## Merge results
-python3 main_average.py "${DIR}/output" avglocal -p
+python3 main_average.py $DIR avglocal -p
 
 ## Save results
 cd "${DIR}/postProc"
