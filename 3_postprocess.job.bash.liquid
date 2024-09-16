@@ -40,7 +40,7 @@ if [ ! -d "$ENV_PATH" ]; then
         echo "Creating LBMPost env..."
         cp /net/pr2/projects/plgrid/plggisw/VirtualFD/LBMpost-main.zip .
         unzip LBMpost-main.zip
-        cd LBMPost-main
+        cd LBMpost-main
         conda config --set auto_activate_base false
         mkdir -p $SCRATCH/.conda
         conda config --add pkgs_dirs $SCRATCH/.conda
