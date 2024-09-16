@@ -25,6 +25,6 @@ chmod +x $SCRATCHDIR/hemoFlow
 
 ## Running simulation
 echo "Running simulation for patient {{ case_number }}"
-mpirun -n {% value_of mpi_size %} $SCRATCHDIR/hemoFlow {% value_of cohort_path %}/*.xml
+mpirun -n {% value_of mpi_size %} $SCRATCHDIR/hemoFlow {% value_of cohort_path %}/{{ case_number }}/*.xml
 
 echo "Finished"
