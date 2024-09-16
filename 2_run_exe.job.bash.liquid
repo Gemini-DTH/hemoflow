@@ -2,7 +2,7 @@
 #SBATCH -N 1
 #SBATCH --ntasks={% value_of mpi_size %}
 #SBATCH --cpus-per-task=1
-#SBATCH --time=01:00:00
+#SBATCH --time=02:00:00
 #SBATCH -A {{ grant_id }}
 #SBATCH -p plgrid
 #SBATCH --output ./slurm-%j.out
@@ -15,7 +15,7 @@ cd $TMPDIR
 pwd
 
 ## Load modules
-echo Loading modules
+echo "Loading modules"
 module load hdf5
 module load cmake
 
@@ -24,16 +24,7 @@ module load cmake
 chmod +x $SCRATCHDIR/hemoFlow
 
 ## Running simulation
-echo Running simulation
-mpirun -n {% value_of mpi_size %} $SCRATCHDIR/hemoFlow {% value_of datafile %}
+echo "Running simulation for patient {{ case_number }}"
+mpirun -n {% value_of mpi_size %} $SCRATCHDIR/hemoFlow {% value_of cohort_path %}/*.xml
 
-DIR="$(dirname {% value_of datafile %})"
-echo staging output from:
-echo "${DIR}/output"
-cd $DIR
-cd output
-
-## Save results
-{% stage_out *.dat %}
-
-echo Finish
+echo "Finished"

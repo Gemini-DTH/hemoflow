@@ -1,0 +1,76 @@
+#!/bin/bash -l
+#SBATCH -N 1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --time=02:00:00
+#SBATCH --mem=10GB
+#SBATCH -A {{ grant_id }}
+#SBATCH -p plgrid
+#SBATCH --output ./slurm-%j.out
+#SBATCH --error ./slurm-%j.err
+
+# Finish with error on first command with error
+set -e
+
+cd $TMPDIR
+pwd
+
+## Load modules
+echo "Loading modules"
+module load python
+module load miniconda3
+
+## Setting env
+ENV_PATH=$SCRATCH/lbmpost
+ENV_LOCKFILE="$SCRATCH/lbmpost.lock"
+
+if [ ! -d "$ENV_PATH" ]; then
+    echo "LBMPost environment not found."
+
+    while [ -e "$ENV_LOCKFILE" ]; do
+        echo "Env already being set up. Waiting..."
+        sleep 30
+    done
+
+    ## Create lockfile
+    if ( set -o noclobber; echo "$$" > "$ENV_LOCKFILE" ) 2> /dev/null; then
+        trap 'rm -f "$ENV_LOCKFILE"; exit $?' INT TERM EXIT
+
+        ## Create conda env
+        echo "Creating LBMPost env..."
+        cp /net/pr2/projects/plgrid/plggisw/VirtualFD/LBMpost-main.zip .
+        unzip LBMpost-main.zip
+        cd LBMPost-main
+        conda config --set auto_activate_base false
+        mkdir -p $SCRATCH/.conda
+        conda config --add pkgs_dirs $SCRATCH/.conda
+        conda env create --prefix $SCRATCH/lbmpost --file environment.yml
+
+        ## Remove lockfile
+        rm -f "$ENV_LOCKFILE"
+        trap - INT TERM EXIT
+    else
+        exit 1
+    fi
+else
+    echo "LBMPost conda env already exists. Skipping setup."
+fi
+
+## Running postprocessing
+conda activate $ENV_PATH
+echo "Running postprocessing for ${CASE}/output..."
+CASE={% value_of cohort_path %}/{{ case_number }}
+python main.py $CASE {% value_of mode %}
+
+## Save results
+echo "Staging out output from:"
+echo "${CASE}/postProc"
+cd $CASE/postProc
+
+{% stage_out *.vtu %}
+{% stage_out *.vti %}
+{% stage_out *.vtp %}
+{% stage_out *.vts %}
+{% stage_out *.csv %}
+
+echo "Postprocessing finished"
