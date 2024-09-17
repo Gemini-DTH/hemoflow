@@ -20,6 +20,11 @@ echo "Loading modules"
 module load python
 module load miniconda3
 
+## Get LBMpost
+cp /net/pr2/projects/plgrid/plggisw/VirtualFD/LBMpost-main.zip .
+unzip LBMpost-main.zip
+cd LBMpost-main
+
 ## Setting env
 ENV_PATH=$SCRATCH/lbmpost
 ENV_LOCKFILE="$SCRATCH/lbmpost.lock"
@@ -38,9 +43,6 @@ if [ ! -d "$ENV_PATH" ]; then
 
         ## Create conda env
         echo "Creating LBMPost env..."
-        cp /net/pr2/projects/plgrid/plggisw/VirtualFD/LBMpost-main.zip .
-        unzip LBMpost-main.zip
-        cd LBMpost-main
         conda config --set auto_activate_base false
         mkdir -p $SCRATCH/.conda
         conda config --add pkgs_dirs $SCRATCH/.conda
@@ -58,8 +60,8 @@ fi
 
 ## Running postprocessing
 conda activate $ENV_PATH
-echo "Running postprocessing for ${CASE}/output..."
 CASE={% value_of cohort_path %}/{{ case_number }}
+echo "Running postprocessing for ${CASE}/output..."
 python main.py $CASE {% value_of mode %}
 
 ## Save results
