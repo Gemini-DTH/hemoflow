@@ -2,7 +2,7 @@
 #SBATCH -N 1
 #SBATCH --ntasks={% value_of mpi_size %}
 #SBATCH --cpus-per-task=1
-#SBATCH --time=02:00:00
+#SBATCH --time={% value_of timelimit %}
 #SBATCH -A {{ grant_id }}
 #SBATCH -p plgrid
 #SBATCH --output ./slurm-%j.out
