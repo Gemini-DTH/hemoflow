@@ -72,8 +72,9 @@ RESULTS_DIR=/net/pr2/projects/plgrid/plggisw/VirtualFD/campaigns/$campaign_name
 python simDataCollector.py $RESULTS_DIR
 
 ## Save results
-mv $RESULTS_DIR/simulationData.csv "${RESULTS_DIR}/${campaign_name}_results.csv"
+cd $RESULTS_DIR
+mv simulationData.csv "${campaign_name}_results.csv"
 
-{% stage_out "${RESULTS_DIR}/${campaign_name}_results.csv" %}
+{% stage_out "${campaign_name}_results.csv" %}
 
 echo Finish
