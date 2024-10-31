@@ -40,6 +40,7 @@ case_full_id=$(echo "$patient_name" | grep -oP "NAP\d+_ane_[^_]+_[^_]+")
 
 CASE_DIR=/net/pr2/projects/plgrid/plggisw/VirtualFD/campaigns/{{ campaign_name }}/{{ case_number }}
 mkdir -p $CASE_DIR
+cd $SCRATCHDIR
 mv *.xml $CASE_DIR
 mv *.txt $CASE_DIR
 mv *.vtp $CASE_DIR
@@ -48,6 +49,6 @@ mv *.npz $CASE_DIR
 
 ## Running simulation
 echo "Running simulation for patient ${patient_name}"
-mpirun -n {% value_of mpi_size %} $SCRATCHDIR/hemoFlow "${CASE_DIR}/${patient_name}.xml"
+mpirun -n {% value_of mpi_size %} ./hemoFlow "${CASE_DIR}/${patient_name}.xml"
 
 echo "Finished"
