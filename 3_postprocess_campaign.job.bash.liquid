@@ -60,14 +60,16 @@ fi
 
 ## Running postprocessing
 conda activate $ENV_PATH
-CASE={% value_of cohort_path %}/{{ case_number }}
-echo "Running postprocessing for ${CASE}/output..."
-python main.py $CASE {% value_of mode %}
+CAMPAIGN_DIR=/net/pr2/projects/plgrid/plggisw/VirtualFD/campaigns/{{ campaign_name }}
+CASE_DIR=$CAMPAIGN_DIR/{{ case_number }}
+
+echo "Running postprocessing for ${CASE_DIR}/output..."
+python main.py $CASE_DIR {% value_of mode %}
 
 ## Save results
 echo "Staging out output from:"
-echo "${CASE}/postProc"
-cd $CASE/postProc
+echo "${CASE_DIR}/postProc"
+cd $CASE_DIR/postProc
 
 {% stage_out *.vtu %}
 {% stage_out *.vti %}
@@ -75,8 +77,6 @@ cd $CASE/postProc
 {% stage_out *.vts %}
 {% stage_out *.csv %}
 
-CAMPAIGNS_DIR=/net/pr2/projects/plgrid/plggisw/VirtualFD/campaigns
-mkdir -p $CAMPAIGNS_DIR/{{ campaign_name }}
-cp *.csv $CAMPAIGNS_DIR/{{ campaign_name }}
+mv *.csv $CAMPAIGN_DIR
 
 echo "Postprocessing finished"

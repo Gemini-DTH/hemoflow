@@ -23,8 +23,31 @@ module load cmake
 {% stage_in_artifact hemoFlow %}
 chmod +x $SCRATCHDIR/hemoFlow
 
+patient_name={{ case_number }}
+case_id=$(echo "$patient_name" | grep -oP "NAP\d+")
+case_full_id=$(echo "$patient_name" | grep -oP "NAP\d+_ane_[^_]+_[^_]+")
+
+{% stage_in_by_filename "${patient_name}.xml" %}
+{% stage_in_by_filename "cerebral_flowrate_hypertensive.txt" %}
+{% stage_in_by_filename "${case_id}_0_aneurysmSack.vtp" %}
+{% stage_in_by_filename "${case_id}_0_interpolatedcl.vtp" %}
+{% stage_in_by_filename "${case_id}_0_patchcl.vtp" %}
+{% stage_in_by_filename "${case_id}_GlobalShift.csv" %}
+{% stage_in_by_filename "${case_id}_LocalShift.csv" %}
+{% stage_in_by_filename "${case_id}_Rot1.csv" %}
+{% stage_in_by_filename "${case_id}_Rot2.csv" %}
+{% stage_in_by_filename "vox_${case_full_id}_20M_c.npz" %}
+
+CASE_DIR=/net/pr2/projects/plgrid/plggisw/VirtualFD/campaigns/{{ campaign_name }}/{{ case_number }}
+mkdir -p $CASE_DIR
+mv *.xml $CASE_DIR
+mv *.txt $CASE_DIR
+mv *.vtp $CASE_DIR
+mv *.csv $CASE_DIR
+mv *.npz $CASE_DIR
+
 ## Running simulation
-echo "Running simulation for patient {{ case_number }}"
-mpirun -n {% value_of mpi_size %} $SCRATCHDIR/hemoFlow {% value_of cohort_path %}/{{ case_number }}/*.xml
+echo "Running simulation for patient ${patient_name}"
+mpirun -n {% value_of mpi_size %} $SCRATCHDIR/hemoFlow "${CASE_DIR}/${patient_name}.xml"
 
 echo "Finished"
