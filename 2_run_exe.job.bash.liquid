@@ -44,8 +44,11 @@ cd $SCRATCHDIR
 mv *.xml $CASE_DIR
 mv *.txt $CASE_DIR
 mv *.vtp $CASE_DIR
-mv *.csv $CASE_DIR
 mv *.npz $CASE_DIR
+mv "${case_id}_GlobalShift.csv" "${CASE_DIR}/GlobalShift.csv"
+mv "${case_id}_LocalShift.csv" "${CASE_DIR}/LocalShift.csv"
+mv "${case_id}_Rot1.csv" "${CASE_DIR}/Rot1.csv"
+mv "${case_id}_Rot2.csv" "${CASE_DIR}/Rot2.csv"
 
 ## Running simulation
 echo "Running simulation for patient ${patient_name}"
