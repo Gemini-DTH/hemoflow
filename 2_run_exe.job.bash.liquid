@@ -38,17 +38,14 @@ case_full_id=$(echo "$patient_name" | grep -oP "NAP\d+_ane_[^_]+_[^_]+")
 {% stage_in_by_filename "${case_id}_Rot2.csv" %}
 {% stage_in_by_filename "vox_${case_full_id}_20M_c.npz" %}
 
-CASE_DIR=/net/pr2/projects/plgrid/plggisw/VirtualFD/campaigns/{{ campaign_name }}/{{ case_number }}
+CASE_DIR=$SCRATCH/VirtualFD_Campaigns/{{ campaign_name }}/{{ case_number }}
 mkdir -p $CASE_DIR
 cd $SCRATCHDIR
 mv *.xml $CASE_DIR
 mv *.txt $CASE_DIR
 mv *.vtp $CASE_DIR
 mv *.npz $CASE_DIR
-mv "${case_id}_GlobalShift.csv" "${CASE_DIR}/GlobalShift.csv"
-mv "${case_id}_LocalShift.csv" "${CASE_DIR}/LocalShift.csv"
-mv "${case_id}_Rot1.csv" "${CASE_DIR}/Rot1.csv"
-mv "${case_id}_Rot2.csv" "${CASE_DIR}/Rot2.csv"
+mv *.csv $CASE_DIR
 
 ## Running simulation
 echo "Running simulation for patient ${patient_name}"

@@ -68,7 +68,7 @@ campaign_name={% value_of campaign_name %}
 ## Merge campaign results
 conda activate $ENV_PATH
 cd $TMPDIR/virtualfd
-RESULTS_DIR=/net/pr2/projects/plgrid/plggisw/VirtualFD/campaigns/$campaign_name
+RESULTS_DIR=$SCRATCH/VirtualFD_Campaigns/$campaign_name
 python simDataCollector.py $RESULTS_DIR
 
 ## Save results

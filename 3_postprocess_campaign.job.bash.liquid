@@ -21,9 +21,9 @@ module load python
 module load miniconda3
 
 ## Get LBMpost
-cp /net/pr2/projects/plgrid/plggisw/VirtualFD/LBMpost-fix-vvuq_output_format.zip .
-unzip LBMpost-fix-vvuq_output_format.zip
-cd LBMpost-fix-vvuq_output_format
+cp /net/pr2/projects/plgrid/plggisw/VirtualFD/LBMpost-dev.zip .
+unzip LBMpost-dev.zip
+cd LBMpost-dev
 
 ## Setting env
 ENV_PATH=$SCRATCH/lbmpost
@@ -60,7 +60,7 @@ fi
 
 ## Running postprocessing
 conda activate $ENV_PATH
-CAMPAIGN_DIR=/net/pr2/projects/plgrid/plggisw/VirtualFD/campaigns/{{ campaign_name }}
+CAMPAIGN_DIR=$SCRATCH/VirtualFD_Campaigns/{{ campaign_name }}
 CASE_DIR=$CAMPAIGN_DIR/{{ case_number }}
 
 echo "Running postprocessing for ${CASE_DIR}/output..."
