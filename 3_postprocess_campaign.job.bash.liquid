@@ -34,7 +34,7 @@ unzip LBMpost-dev.zip
 cd LBMpost-dev
 
 ## Running postprocessing
-conda activate $ENV_PATH
+conda activate $MEMFS/lbmpost_mountpoint
 CAMPAIGN_DIR=$SCRATCH/VirtualFD_Campaigns/{{ campaign_name }}
 CASE_DIR=$CAMPAIGN_DIR/{{ case_number }}
 
