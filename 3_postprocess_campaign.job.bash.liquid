@@ -39,7 +39,7 @@ CAMPAIGN_DIR=$SCRATCH/VirtualFD_Campaigns/{{ campaign_name }}
 CASE_DIR=$CAMPAIGN_DIR/{{ case_number }}
 
 echo "Running postprocessing for ${CASE_DIR}/output..."
-python main.py $CASE_DIR {% value_of mode %}
+python main.py $CASE_DIR {% value_of mode %} -p
 
 ## Save results
 echo "Staging out output from:"
