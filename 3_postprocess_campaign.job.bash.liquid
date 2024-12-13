@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --time=02:00:00
-#SBATCH --mem=10GB
+#SBATCH --mem=20GB
 #SBATCH -A {{ grant_id }}
 #SBATCH -p plgrid
 #SBATCH -C memfs
@@ -46,10 +46,6 @@ echo "Staging out output from:"
 echo "${CASE_DIR}/postProc"
 cd $CASE_DIR/postProc
 
-{% stage_out *.vtu %}
-{% stage_out *.vti %}
-{% stage_out *.vtp %}
-{% stage_out *.vts %}
 {% stage_out *.csv %}
 
 echo "Postprocessing finished"
