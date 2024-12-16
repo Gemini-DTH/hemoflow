@@ -20,53 +20,27 @@ echo "Preparing computation source code"
 cd virtualfd
 
 ## Load modules
-echo Loading modules
+echo "Loading modules"
 module load python
 module load miniconda3
 
-## Setting env
-ENV_PATH=$SCRATCH/lbmpost
-ENV_LOCKFILE="$SCRATCH/lbmpost.lock"
+## Set up an environment
+echo "Setting up conda environment"
+cd $MEMFS
+mkdir lbmpost_mountpoint
+squashfuse /net/pr2/projects/plgrid/plggisw/VirtualFD/lbmpost.squashfs lbmpost_mountpoint
 
-if [ ! -d "$ENV_PATH" ]; then
-    echo "LBMPost environment not found."
-
-    while [ -e "$ENV_LOCKFILE" ]; do
-        echo "Env already being set up. Waiting..."
-        sleep 30
-    done
-
-    ## Create lockfile
-    if ( set -o noclobber; echo "$$" > "$ENV_LOCKFILE" ) 2> /dev/null; then
-        trap 'rm -f "$ENV_LOCKFILE"; exit $?' INT TERM EXIT
-
-        ## Create conda env
-        echo "Creating LBMPost env..."
-        cp /net/pr2/projects/plgrid/plggisw/VirtualFD/LBMpost-main.zip .
-        unzip LBMpost-main.zip
-        cd LBMpost-main
-        conda config --set auto_activate_base false
-        mkdir -p $SCRATCH/.conda
-        conda config --add pkgs_dirs $SCRATCH/.conda
-        conda env create --prefix $SCRATCH/lbmpost --file environment.yml
-
-        ## Remove lockfile
-        rm -f "$ENV_LOCKFILE"
-        trap - INT TERM EXIT
-    else
-        exit 1
-    fi
-else
-    echo "LBMPost conda env already exists. Skipping setup."
-fi
-
-cd
+## Get LBMpost
+#TODO Change this to cloning LBMPost when repo is ready and public
+cp /net/pr2/projects/plgrid/plggisw/VirtualFD/LBMpost-dev.zip .
+unzip LBMpost-dev.zip
+cd LBMpost-dev
 
 ## Get the campaign name
 campaign_name={% value_of campaign_name %}
 
 ## Merge campaign results
-conda activate $ENV_PATH
+conda activate $MEMFS/lbmpost_mountpoint
 cd $TMPDIR/virtualfd
 RESULTS_DIR=$SCRATCH/VirtualFD_Campaigns/$campaign_name
 python simDataCollector.py $RESULTS_DIR
