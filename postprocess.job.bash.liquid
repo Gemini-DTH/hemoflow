@@ -1,10 +1,12 @@
 #!/bin/bash -l
 #SBATCH -N 1
-#SBATCH --mem=32GB
+#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --time=00:30:00
+#SBATCH --time=02:00:00
+#SBATCH --mem=20GB
 #SBATCH -A {{ grant_id }}
 #SBATCH -p plgrid
+#SBATCH -C memfs
 #SBATCH --output ./slurm-%j.out
 #SBATCH --error ./slurm-%j.err
 
@@ -14,28 +16,40 @@ set -e
 cd $TMPDIR
 pwd
 
-## Clone repository and switch into selected revision
-echo "Preparing computation source code"
-{% clone_repo %}
-cd virtualfd
-
 ## Load modules
-echo Loading modules
+echo "Loading modules"
 module load python
 module load miniconda3
 
-## Postprocessing
-source activate $PLG_GROUPS_STORAGE/plggisw/VirtualFD/vfd_venv
+## Set up an environment
+echo "Setting up conda environment"
+cd $MEMFS
+mkdir lbmpost_mountpoint
+squashfuse /net/pr2/projects/plgrid/plggisw/VirtualFD/lbmpost.squashfs lbmpost_mountpoint
 
-## Get the case directory path
-datafile={% value_of datafile %}
-DIR="$(dirname "${datafile}")"
+## Get LBMpost
+#TODO Change this to cloning LBMPost when repo is ready and public
+cp /net/pr2/projects/plgrid/plggisw/VirtualFD/LBMpost-dev.zip .
+unzip LBMpost-dev.zip
+cd LBMpost-dev
 
-## Merge results
-python3 main_average.py $DIR avglocal -p
+## Running postprocessing
+conda activate $MEMFS/lbmpost_mountpoint
+CASE_DIR={% value_of out_dir %}
+PURGE={% value_of purge %}
+
+echo "Running postprocessing for ${CASE_DIR}/output..."
+if [ "$PURGE" == "True" ]; then
+    python main.py $CASE_DIR {% value_of mode %} -p
+else
+    python main.py $CASE_DIR {% value_of mode %}
+fi
 
 ## Save results
-cd "${DIR}/postProc"
-{% stage_out *.vti %}
+echo "Staging out output from:"
+echo "${CASE_DIR}/postProc"
+cd $CASE_DIR/postProc
 
-echo Finish
+{% stage_out *.csv %}
+
+echo "Postprocessing finished"
