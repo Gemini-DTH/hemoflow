@@ -37,9 +37,14 @@ cd LBMpost-dev
 conda activate $MEMFS/lbmpost_mountpoint
 CAMPAIGN_DIR=$SCRATCH/VirtualFD_Campaigns/{{ campaign_name }}
 CASE_DIR=$CAMPAIGN_DIR/{{ case_number }}
+PURGE={% value_of purge %}
 
 echo "Running postprocessing for ${CASE_DIR}/output..."
-python main.py $CASE_DIR {% value_of mode %} -p
+if [ "$PURGE" == "True" ]; then
+    python main.py $CASE_DIR {% value_of mode %} -p
+else
+    python main.py $CASE_DIR {% value_of mode %}
+fi
 
 ## Save results
 echo "Staging out output from:"
