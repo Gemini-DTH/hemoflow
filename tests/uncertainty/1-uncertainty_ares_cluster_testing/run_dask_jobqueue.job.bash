@@ -1,9 +1,9 @@
 #!/bin/bash -l
 #SBATCH -J easyvvuq_hemoflow
 #SBATCH -N 1
-#SBATCH --ntasks-per-node=4
-#SBATCH --time=01:00:00
-#SBATCH --mem=16GB
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=08:00:00
+#SBATCH --mem=8GB
 #SBATCH -A plggemini2026-cpu
 #SBATCH -p plgrid-services
 #SBATCH --output=./slurm-%j.out
@@ -38,9 +38,9 @@ unzip LBMpost-fix-vvuq_output_format.zip
 echo "Running simulation"
 export HEMOFLOW_PATH=/net/pr2/projects/plgrid/plgggemini/Hemoflow/hemoflow/build/hemoFlow
 export LBMPOST_PATH=$TMPDIR/LBMpost-fix-vvuq_output_format/main.py
-export JOBS_NUM=2
+export JOBS_NUM=2 #number of parallel jobs (workers) to submit to the cluster queue.
 
 cd $TMPDIR/hemoflow/tests/uncertainty/1-uncertainty_ares_cluster_testing
-python3 -u ./uncertainty_quantification_test.py --slurm=dask-jobqueue
+python3 -u ./uncertainty_quantification_test.py --slurm=dask-jobqueue # running easyvvuq experiment using dask-jobqueue SLURMCluster
 
 echo "Finish"
