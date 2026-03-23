@@ -15,7 +15,7 @@ LBMPOST_PATH = os.environ.get("LBMPOST_PATH")
 TEMPLATE_DIR_PATH = "campaign_dir"
 TEMPLATE_DIR_PATH = os.path.abspath(TEMPLATE_DIR_PATH)
 
-SAMPLE_CSV_PATH = "simulation_points_64_lin143_qmc.csv"
+SAMPLE_CSV_PATH = "simulation_points_510_lin143_qmc.csv"
 SAMPLE_CSV_PATH = os.path.abspath(SAMPLE_CSV_PATH)
 
 
@@ -48,10 +48,10 @@ def run_uncertainty_quantification(client_param):
         uq.actions.ExecuteLocal("cp --recursive " + TEMPLATE_DIR_PATH + "/. ./"),
         uq.actions.Encode(encoder),
         # Simulation
-        #!RUNNING ON 6 CORES
-        uq.actions.ExecuteLocal("mpirun -n 6 " + HEMOFLOW_PATH + " input.xml"),
+        # Number of processes for mpirun should be equal to the number of cores requested in SLURM job (job_cpu)
+        uq.actions.ExecuteLocal("mpirun -n 12 " + HEMOFLOW_PATH + " input.xml"),
         # conda env for running LBMpost, livestream for stdio
-        uq.actions.ExecuteLocal("python3 -u {} ./ full".format(LBMPOST_PATH)),
+        uq.actions.ExecuteLocal("conda run --live-stream -p $SCRATCH/post_env/lbmpost python3 -u {} ./ full -p".format(LBMPOST_PATH)),
         uq.actions.Decode(decoder),
     )
 
@@ -59,12 +59,15 @@ def run_uncertainty_quantification(client_param):
 
     campaign.set_sampler(uq.sampling.CSVSampler(SAMPLE_CSV_PATH))
 
-    campaign.execute(pool=client_param).collate()
-    print("Simulation finished.")
+    try:
+        campaign.execute(pool=client_param).collate()
+        print("Simulation finished.")
 
-    data_frame = campaign.get_collation_result()
-    print(data_frame)
-    data_frame.to_csv("uncertainty_output.csv")
+        data_frame = campaign.get_collation_result()
+        print(data_frame)
+        data_frame.to_csv("uncertainty_output.csv")
+    except Exception as e:
+        print(f"ERROR: {e} – campaign state saved in campaign.db ...")
 
 
 
@@ -106,28 +109,28 @@ if __name__ == "__main__":
         from dask_jobqueue import SLURMCluster
 
         job_script_prologue = [
-            "set -e",
             "module load hdf5",
             "module load cmake",
             "cd $TMPDIR",
             "mkdir env_mountpoint",
-            "squashfuse $SCRATCH/lbmpost.squashfs env_mountpoint",
+            "squashfuse $SCRATCH/lbmpost/LBMenv.squashfs env_mountpoint",
             "conda activate $TMPDIR/env_mountpoint",
         ]
 
+        # Cluster allocation should be adapted to the needs of the campaign 
         cluster = SLURMCluster(
             shebang="#!/bin/bash -l",
             queue="plgrid",
             account="plggemini2026-cpu",
             cores=1,
             processes=1,
-            memory="16GB",
-            walltime="04:00:00",
+            memory="48GB",
+            walltime="32:00:00",
             interface="ib0",
             scheduler_options={"interface": "ib0"},
             python="python3",
             n_workers=1,
-            job_cpu=6,
+            job_cpu=12,
             job_script_prologue=job_script_prologue,
             worker_extra_args=["--memory-limit 1GiB"],
             job_extra_directives=[
@@ -140,6 +143,7 @@ if __name__ == "__main__":
         cluster.submit_command = "sbatch"
         cluster.scale(jobs=int(os.environ.get("JOBS_NUM")))
         client = Client(cluster)
+        client.run(lambda dask_worker: setattr(dask_worker, "retries", 2))
         print(cluster)
         print(client)
 
