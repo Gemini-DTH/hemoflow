@@ -38,7 +38,10 @@ unzip LBMpost-dev.zip
 echo "Running simulation"
 export HEMOFLOW_PATH=/net/pr2/projects/plgrid/plgggemini/Hemoflow/hemoflow/build/hemoFlow
 export LBMPOST_PATH=$TMPDIR/LBMpost-dev/main.py
-export JOBS_NUM=10 #number of parallel jobs (workers) to submit to the cluster queue.
+
+# Set the range number of jobs for dask-jobqueue adaptive SLURMCluster scaling
+export JOBS_NUM_MIN=1 
+export JOBS_NUM_MAX=100
 
 cd $TMPDIR/hemoflow/tests/uncertainty/1-uncertainty_ares_cluster_testing
 python3 -u ./uncertainty_quantification_test.py --slurm=dask-jobqueue # running easyvvuq experiment using dask-jobqueue SLURMCluster

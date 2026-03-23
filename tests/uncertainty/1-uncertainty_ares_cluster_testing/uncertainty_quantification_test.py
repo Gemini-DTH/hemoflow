@@ -132,7 +132,7 @@ if __name__ == "__main__":
             n_workers=1,
             job_cpu=12,
             job_script_prologue=job_script_prologue,
-            worker_extra_args=["--memory-limit 1GiB"],
+            worker_extra_args=["--memory-limit 1GiB","--lifetime", "32h", "--lifetime-stagger", "4m"],
             job_extra_directives=[
                 "--output ./slurm-%j.out",
                 "--error ./slurm-%j.err",
@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
         cluster.job_cls.submit_command = "sbatch"
         cluster.submit_command = "sbatch"
-        cluster.scale(jobs=int(os.environ.get("JOBS_NUM")))
+        cluster.adapt(minimum=int(os.environ.get("JOBS_NUM_MIN")), maximum=int(os.environ.get("JOBS_NUM_MAX")))
         client = Client(cluster)
         client.run(lambda dask_worker: setattr(dask_worker, "retries", 2))
         print(cluster)
