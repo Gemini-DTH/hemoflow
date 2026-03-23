@@ -146,8 +146,11 @@ if __name__ == "__main__":
         client.run(lambda dask_worker: setattr(dask_worker, "retries", 2))
         print(cluster)
         print(client)
+        
+        from dask.distributed import performance_report
 
-        run_uncertainty_quantification(client)
+        with performance_report(filename="dask-report.html"):
+            run_uncertainty_quantification(client)
 
     else:
         print("Incorrect slurm option specified!")
