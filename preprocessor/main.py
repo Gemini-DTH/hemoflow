@@ -4,6 +4,7 @@ import numpy as np
 import json
 import os
 import scipy.interpolate as scpinter
+from scipy.optimize import linear_sum_assignment
 import vtk
 import slice
 
@@ -19,12 +20,20 @@ from vtk.util import numpy_support
 # Parameters to check before execution:
 SI_FACTOR = 0.001 # Ratio to [m]. Most STL is in [mm]
 
+# 'distance' tolerance (opening-detection voxel slack), in units of the opening's own
+# local radius. Always used (no longer configurable) instead of one flat voxel count,
+# since a flat count doesn't scale with vessel size/resolution: a value tuned for one
+# opening can be wrong by an order of magnitude for a smaller branch in the same geometry.
+# Keep this well under 1.0: at 1.0x, a large vessel's own tolerance can exceed its
+# distance to an unrelated domain face it just happens to sit near coordinate-wise,
+# spuriously flagging a face that isn't a real opening at all.
+DISTANCE_RADIUS_FACTOR = 0.9
+
 DEBUG_MODE = False # This will enable additional intermediate nrrd output to check with e.g. 3DSlicer
 INHOMOGEN = False
 #############################
+import nrrd
 
-if DEBUG_MODE:
-    import nrrd
 
 def inRange(value, rangeValue, distance):
     if np.abs(rangeValue-value) < distance:
@@ -38,27 +47,28 @@ def inRange3D(value3D, rangeValue3D, distance):
     
     return isInRange
 
-def generateCutList(voxelDomainSize, radiusTangentVoxelList):
+def generateCutList(voxelDomainSize, radiusTangentVoxelList, perOpeningDistance):
     sidesToCut = np.zeros(6)
-    
-    # If centerline point is within this distance of the boundary it is considered an opening
-    distance = 4  # 4 voxel distance: note, cutting away unused layers might influence this!
+
+    # perOpeningDistance: one tolerance per centerline point (voxels). If a point is
+    # within its own tolerance of a boundary, that side is considered an opening.
+    # Note: cutting away unused layers might influence this!
 
     if DEBUG_MODE:
             print("-> (DEBUG) generatin cutlist -> voxelDomainSize:", voxelDomainSize)
-    
-    for o in radiusTangentVoxelList:
+
+    for o, distance in zip(radiusTangentVoxelList, perOpeningDistance):
         pos = o[1]
 
         if DEBUG_MODE:
-            print("-> (DEBUG) generatin cutlist -> centerline point:", pos)
+            print("-> (DEBUG) generatin cutlist -> centerline point:", pos, "distance tolerance:", distance)
 
         for j in range(3):
             if inRange(pos[j], 0, distance):
                 sidesToCut[j*2]=1
             if inRange(pos[j], voxelDomainSize[j], distance):
                 sidesToCut[j*2+1]=1
-            
+
     return np.where(sidesToCut == 1)[0]
 
 def scaleAndShiftData(points, scale, shift):
@@ -74,14 +84,20 @@ if __name__ == "__main__":
         print("Usage:", sys.argv[0], "input.config")
         sys.exit(-1)
 
-    cutWidth = 1 # Might need to set this to 2 if there is more than 1 padding layer for some reason
-    distance = 4
+    cutWidth = 1  # wall layers to cut open at each boundary. No longer config-driven.
 
     confFile = sys.argv[1]
-    workDir = os.path.dirname(confFile)
+    workDir = os.path.dirname(os.path.abspath(confFile))
 
     with open(confFile) as json_file:
         confData = json.load(json_file)
+
+    # 'distance' (voxel opening-detection tolerance) and 'cutWidth' are no longer read from
+    # the config. 'distance' is always resolved per-opening below (once each opening's
+    # physical radius is known) as DISTANCE_RADIUS_FACTOR times that opening's own radius in
+    # voxels, instead of one flat default shared by every opening regardless of size.
+    print("Using radius-relative 'distance' default: {}x each opening's local radius".format(DISTANCE_RADIUS_FACTOR))
+    print("Using fixed 'cutWidth':", cutWidth)
 
     # Cutlist meaning -> cut one layer from the planes:
     # 0,1 => Xmin, Xmax
@@ -98,11 +114,18 @@ if __name__ == "__main__":
         stentFileName = confData["stent_folder"] + "_" + dirName + "_stent_mesh.stl"
 
         stentGeomFile = os.path.join(workDir,confData["stent_folder"],stentFileName)
+        haveStent = True
     elif (len(confData["stent_mesh_base"]) > 0):
         stentGeomFile = workDir + "/" + confData["stent_mesh_base"] + "mesh.stl"
-
-    if os.path.isfile(stentGeomFile):
         haveStent = True
+
+    # A non-empty 'stent_folder'/'stent_mesh_base' means the config explicitly asks for a
+    # stent. Silently falling back to "no stent" when that file is missing (e.g. a typo or
+    # a path-resolution bug) would produce a result without a flow diverter and no warning
+    # that anything was wrong, so treat a configured-but-missing stent file as fatal.
+    if haveStent and not os.path.isfile(stentGeomFile):
+        print("!!! ERROR: stent geometry file specified in config but not found:", stentGeomFile)
+        sys.exit(-1)
 
     stentGeomBase = stentGeomFile.replace('mesh.stl','')
 
@@ -149,7 +172,12 @@ if __name__ == "__main__":
     print("translate", domainData[1])
     radiusTangentVoxelList = convertToVoxelspace(radiusTangentList, domainData[0], domainData[1])
 
-    cutList = generateCutList(domainData[2], radiusTangentVoxelList)
+    voxScale = domainData[0][0]  # isotropic: same scale on all 3 axes
+    perOpeningDistance = [DISTANCE_RADIUS_FACTOR * rtv[0] * voxScale for rtv in radiusTangentVoxelList]
+
+    print("Per-opening distance tolerance [voxels]:", perOpeningDistance)
+
+    cutList = generateCutList(domainData[2], radiusTangentVoxelList, perOpeningDistance)
 
     print("Computed list of sides to cut away for openings:", cutList)
 
@@ -195,27 +223,45 @@ if __name__ == "__main__":
     # Radial ratio of outlets, note: Qinlet = 1, so it is not included
     r3Tot = np.sum([x[0]**3 for x in radiusTangentVoxelList[1:]])
 
+    # Match each centerline point to its closest detected opening via a global optimal
+    # (Hungarian) assignment, instead of a distance-threshold scan. A threshold scan can
+    # silently drop a point that has no opening within 'distance' (leaving that opening
+    # unpainted, with no BC at all) while still passing the earlier length check, since
+    # that check only compares counts, not whether every point actually got matched.
+    # The Hungarian assignment always produces a full one-to-one pairing between the two
+    # equal-length lists, so no opening can be silently skipped.
+    costMatrix = np.zeros((len(radiusTangentVoxelList), len(openingCenters)))
     for ccCL in range(len(radiusTangentVoxelList)):
+        cCL = radiusTangentVoxelList[ccCL][1]
         for ccVox in range(len(openingCenters)):
             cVox = openingCenters[ccVox]
-            rCL = radiusTangentVoxelList[ccCL]
-            cCL = rCL[1]
+            costMatrix[ccCL, ccVox] = np.linalg.norm(np.array(cVox) - np.array((cCL[0], cCL[1], cCL[2])))
 
-            if inRange3D(cVox, (cCL[0], cCL[1], cCL[2]), distance) is True:
-                openingRadius.append(rCL[0]*SI_FACTOR)
-                openingNormalizedQratio.append(rCL[0]**3/r3Tot)  # TODO: it also assigns a number to the inlet, disredards that
-                openingCenter.append(cVox)
-                openingNormal.append( np.array((rCL[2][0], rCL[2][1], rCL[2][2])) )
+    clMatchIdx, voxMatchIdx = linear_sum_assignment(costMatrix)
 
-                inlets_outlets_sorted.append(inlet_outlets[ccVox])
+    for ccCL, ccVox in zip(clMatchIdx, voxMatchIdx):
+        matchDistance = costMatrix[ccCL, ccVox]
+        matchTolerance = perOpeningDistance[ccCL]
+        if matchDistance > matchTolerance:
+            print("!!! ERROR: closest opening for centerline point is farther than the 'distance' tolerance!")
+            print("    Centerline point", ccCL, "at", radiusTangentVoxelList[ccCL][1], "radius", radiusTangentVoxelList[ccCL][0])
+            print("    Closest opening", ccVox, "at", openingCenters[ccVox], "distance", matchDistance, "> tolerance", matchTolerance)
+            sys.exit(-1)
+
+        rCL = radiusTangentVoxelList[ccCL]
+        cVox = openingCenters[ccVox]
+
+        openingRadius.append(rCL[0]*SI_FACTOR)
+        openingNormalizedQratio.append(rCL[0]**3/r3Tot)  # TODO: it also assigns a number to the inlet, disredards that
+        openingCenter.append(cVox)
+        openingNormal.append( np.array((rCL[2][0], rCL[2][1], rCL[2][2])) )
+
+        inlets_outlets_sorted.append(inlet_outlets[ccVox])
 
     openingIndex, openingCenters, paintedOpenings = paint_inlets_outlets(inlets_outlets_sorted, data, findBoundaryByArea=False)
 
-    if DEBUG_MODE:
-        print("-> (DEBUG) Saving nrrd geometry flag")
-        nrrd.write(outputBaseName+"geometry.nrrd", paintedOpenings)
-        if len(openingIndex) != len(openingCenters):
-            print("-> (DEBUG) Number of matched openings is incorrect:", len(openingIndex), "insead of", len(openingCenters))
+    if len(openingIndex) != len(openingCenters):
+        print("-> (DEBUG) Number of matched openings is incorrect:", len(openingIndex), "insead of", len(openingCenters))
 
     if haveStent:
         print("\n### Voxelizing flow diverter geometry from 3 projections ###")
@@ -303,6 +349,14 @@ if __name__ == "__main__":
             nrrd.write(outputBaseName + "stent_final.nrrd", voxel_stent_final.astype(np.short, copy=False))
             nrrd.write(outputBaseName + "stent_linear.nrrd", voxel_linear_final.astype(np.single, copy=False))
             nrrd.write(outputBaseName + "stent_quadratic.nrrd", voxel_quadratic_final.astype(np.single, copy=False))
+
+    if haveStent:
+        stentLabel = 17  # Hardcoded, visualization-only.
+        print("Marking stent voxels in geometry flag with label", stentLabel)
+        paintedOpenings[voxel_stent_final.astype(bool)] = stentLabel
+
+    print("Saving nrrd geometry flag")
+    nrrd.write(outputBaseName+"geometry.nrrd", paintedOpenings)
 
     print("\n### Saving final output ###")
     print("File:", outputBaseName + "c.npz")
